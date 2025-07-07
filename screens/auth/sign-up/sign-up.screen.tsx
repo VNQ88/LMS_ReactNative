@@ -31,71 +31,92 @@ import { Toast } from "react-native-toast-notifications";
 // import { Toast } from "react-native-toast-notifications";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Định nghĩa type
+interface UserInfo {
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+interface ErrorState {
+  password: string;
+}
+
 export default function SignUpScreen() {
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [buttonSpinner, setButtonSpinner] = useState(false);
-  const [userInfo, setUserInfo] = useState({
-    name: "",
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    fullName: "",
     email: "",
     password: "",
   });
   const [required, setRequired] = useState("");
-  const [error, setError] = useState({
+  const [error, setError] = useState<ErrorState>({
     password: "",
   });
   function handlePasswordValidation(text: string): void {
     const password = text;
     const passwordSpecialCharacter = /(?=.*[!@#$&*])/;
     const passwordOneNumber = /(?=.*[0-9])/;
-    const passwordSixValue = /(?=.{6,})/;
+    const passwordSixValue = /(?=.{3,})/;
 
-    if (!passwordSpecialCharacter.test(password)) {
-      setError({
-        ...error,
-        password: "Write at least one special character",
-      });
-      setUserInfo({ ...userInfo, password: "" });
-    } else if (!passwordOneNumber.test(password)) {
+    // if (!passwordSpecialCharacter.test(password)) {
+    //   setError({
+    //     ...error,
+    //     password: "Write at least one special character",
+    //   });
+    //   setUserInfo({ ...userInfo, password: "" });
+    // } else
+    if (!passwordOneNumber.test(password)) {
       setError({ ...error, password: "Write at least one number" });
       setUserInfo({ ...userInfo, password: "" });
     } else if (!passwordSixValue.test(password)) {
-      setError({ ...error, password: "Write at least 6 characters" }),
-        setUserInfo({ ...userInfo, password: "" });
+      setError({ ...error, password: "Write at least 3 characters" });
+      setUserInfo({ ...userInfo, password: "" });
     } else {
-      setError({ ...error, password: "" }),
-        setUserInfo({ ...userInfo, password: text });
+      setError({ ...error, password: "" });
+      setUserInfo({ ...userInfo, password: text });
     }
   }
 
   const handleSignUp = async () => {
-    router.push("/routes/verifyAccount");
-    // await axios
-    //   .post(`${SERVER_URI}/auth/register`, userInfo)
-    //   .then(async (response) => {
-    //     await AsyncStorage.setItem(
-    //       "activationToken",
-    //       response.data.activationToken
-    //     );
-    //     Toast.show("Please check your email to activate your account", {
-    //       type: "success",
-    //       placement: "top",
-    //       duration: 2000,
-    //     });
-    //     setUserInfo({
-    //       name: "",
-    //       email: "",
-    //       password: "",
-    //     });
-    //     router.push("/routes/verifyAccount");
-    //     setButtonSpinner(false);
-    //   })
-    //   .catch((error) => {
-    //     if (error.response) {
-    //       Toast.show("Email already exist!", {
-    //         type: "danger",
-    //       });
-    //     }
-    //   });
+    if (!userInfo.fullName || !userInfo.email || !userInfo.password) {
+      Toast.show("Please fill all fields", { type: "danger" });
+      console.log(userInfo);
+      return;
+    }
+
+    setButtonSpinner(true);
+    try {
+      const response = await axios.post(
+        `${SERVER_URI}/auth/register`,
+        userInfo
+      );
+
+      Toast.show("Sign up successful! Let's get started", {
+        type: "success",
+        placement: "top",
+        duration: 5000,
+      });
+      setUserInfo({
+        fullName: "",
+        email: "",
+        password: "",
+      });
+      // router.push("/routes/verifyAccount");
+    } catch (error) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.status === 400
+      ) {
+        Toast.show("Sign up failed!", { type: "danger" });
+      } else {
+        Toast.show("An error occurred. Please try again.", { type: "danger" });
+      }
+    } finally {
+      setButtonSpinner(false);
+    }
   };
 
   return (
@@ -126,9 +147,11 @@ export default function SignUpScreen() {
             <TextInput
               style={[styles.input, { paddingLeft: 40, marginBottom: -12 }]}
               keyboardType="default"
-              value={userInfo.name}
+              value={userInfo.fullName}
               placeholder="nguyen van a"
-              onChangeText={(text) => setUserInfo({ ...userInfo, name: text })}
+              onChangeText={(text) =>
+                setUserInfo({ ...userInfo, fullName: text })
+              }
             ></TextInput>
             <AntDesign
               style={{ position: "absolute", left: 26, top: 17.8 }}

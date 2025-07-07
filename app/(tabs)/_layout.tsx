@@ -1,11 +1,8 @@
 import { View, Text, Image } from "react-native";
 import React from "react";
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import useUser from "@/hooks/auth/useUser";
+import { Stack, Tabs } from "expo-router";
 
 export default function TabsLayout() {
-  // const { user } = useUser();
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -17,10 +14,6 @@ export default function TabsLayout() {
             iconName = require("@/assets/icons/User.png");
           } else if (route.name === "courses/index") {
             iconName = require("@/assets/icons/BookBookmark.png");
-          } else if (route.name === "search/index") {
-            iconName = require("@/assets/icons/search.png");
-          } else {
-            iconName = require("@/assets/icons/User.png");
           }
           return (
             <Image
@@ -34,8 +27,20 @@ export default function TabsLayout() {
       })}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="courses/index" />
-      <Tabs.Screen name="search/index" />
+      <Tabs.Screen
+        name="courses/index"
+        options={{
+          headerShown: true,
+          title: "All Courses",
+        }}
+      />
+      {/* <Tabs.Screen
+        name="search/index"
+        options={{
+          headerShown: true,
+          title: "Search Courses",
+        }}
+      /> */}
       <Tabs.Screen name="profile/index" />
     </Tabs>
   );

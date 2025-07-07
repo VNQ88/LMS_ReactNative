@@ -1,23 +1,22 @@
+import Loader from "@/components/loader";
 import useUser from "@/hooks/auth/useUser";
 import { Redirect } from "expo-router";
 import { useState } from "react";
-import { View, Text } from "react-native";
-import Loader from "@/components/loader";
+
 export default function App() {
-  const [isLoggedIn, setIsLoggedInsetIsLoggedIn] = useState(true);
-
-  return (
-    <Redirect href={!isLoggedIn ? "/routes/onboarding" : "/(tabs)"}></Redirect>
-  );
-
-  // const { loading, user } = useUser();
+  // const [isLoggedIn, setIsLoggedIn] = useState(true);
   // return (
-  //   <>
-  //     {loading ? (
-  //      <Loader />
-  //     ) : (
-  //       <Redirect href={!user ? "/(routes)/onboarding" : "/(tabs)"} />
-  //     )}
-  //   </>
+  //   <Redirect href={!isLoggedIn ? "/routes/onboarding" : "/(tabs)"}></Redirect>
   // );
+
+  const { loading, isLoggedIn } = useUser();
+  return (
+    <>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Redirect href={!isLoggedIn ? "/routes/onboarding" : "/(tabs)"} />
+      )}
+    </>
+  );
 }

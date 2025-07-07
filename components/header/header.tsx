@@ -1,21 +1,51 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { Raleway_700Bold } from "@expo-google-fonts/raleway";
 import { useFonts } from "expo-font";
-import useUser from "@/hooks/auth/useUser";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { SERVER_URI } from "@/utils/uri";
+import { useEffect, useState } from "react";
 
 export default function Header() {
-  const { user } = useUser();
-
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   let [fontsLoaded, fontError] = useFonts({
     Raleway_700Bold,
   });
   if (!fontsLoaded && !fontError) {
     return null;
   }
+  useEffect(() => {
+    // Fetch current user when component mounts
+    fetchCurrentUser()
+      .then((user) => {
+        console.log("Current user:", user);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch current user:", error);
+      });
+  }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem("access_token");
+      if (!accessToken) {
+        throw new Error("No access token available");
+      }
+
+      const response = await axios.get(`${SERVER_URI}/user/1`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      throw error; // Ném lỗi để xử lý ở nơi gọi hàm
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.headerWrapper}>
@@ -30,13 +60,16 @@ export default function Header() {
             Hello
           </Text>
           <Text style={[styles.text, { fontFamily: "Raleway_700Bold" }]}>
-            Vuong Ngo Quoc
+            {currentUser ? currentUser.fullName : "User"}
           </Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.bellButton}>
+      <TouchableOpacity
+        onPress={() => router.push("/routes/cart")}
+        style={styles.bellButton}
+      >
         <View>
-          <Feather name="shopping-bag" size={26} color={"black"}></Feather>
+          <Feather name="shopping-cart" size={26} color={"black"}></Feather>
           <View style={styles.bellContainer}></View>
         </View>
       </TouchableOpacity>
@@ -85,8 +118,8 @@ const styles = StyleSheet.create({
   },
 
   bellContainer: {
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     backgroundColor: "#2467EC",
     position: "absolute",
     borderRadius: 50,

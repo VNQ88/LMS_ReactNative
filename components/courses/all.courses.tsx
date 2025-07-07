@@ -22,6 +22,7 @@ import CourseCard from "@/components/cards/course.card";
 import { mockCourses } from "@/mock/mockCourses";
 
 export default function AllCourses() {
+  const [courses, setCourses] = useState<Course[]>([]);
   const flatListRef = useRef(null);
   let [fontsLoaded, fontError] = useFonts({
     Raleway_700Bold,
@@ -30,16 +31,32 @@ export default function AllCourses() {
     Nunito_500Medium,
   });
 
+  useEffect(() => {
+    axios
+      .get(`${SERVER_URI}/courses`, {
+        params: {
+          page: 1,
+          limit: 3,
+        },
+      })
+      .then((res: any) => {
+        setCourses(res.data.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
   if (!fontsLoaded && !fontError) {
     return null;
   }
   return (
-    <View style={{ flex: 1, marginHorizontal: 16, marginTop: 30 }}>
+    <View style={{ flex: 1, marginHorizontal: 16 }}>
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "space-between",
           alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         <Text
@@ -49,7 +66,7 @@ export default function AllCourses() {
             fontFamily: "Raleway_700Bold",
           }}
         >
-          Popular Courses
+          Popular courses
         </Text>
         <TouchableOpacity onPress={() => router.push("/(tabs)/courses")}>
           <Text
@@ -65,11 +82,12 @@ export default function AllCourses() {
       </View>
       <FlatList
         ref={flatListRef}
-        data={mockCourses}
+        data={courses}
+        scrollEnabled={false}
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item._id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => <CourseCard item={item} />}
-      ></FlatList>
+      />
     </View>
   );
 }

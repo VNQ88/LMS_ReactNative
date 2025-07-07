@@ -1,3 +1,6 @@
+import { mockCourseData } from "./mockCourseData";
+import { mockReviews } from "./mockReview";
+
 export const mockCourses: CoursesType[] = [
   {
     _id: "course_001",
@@ -21,8 +24,8 @@ export const mockCourses: CoursesType[] = [
       { title: "Basic knowledge of JavaScript" },
       { title: "Familiarity with React" },
     ],
-    reviews: [],
-    courseData: [],
+    reviews: mockReviews,
+    courseData: mockCourseData,
     ratings: 4.8,
     purchased: 134,
   },
@@ -49,13 +52,10 @@ export const mockCourses: CoursesType[] = [
     reviews: [
       {
         user: {
-          _id: "user002",
+          id: "user002",
           name: "Jane Smith",
           email: "jane@example.com",
-          avatar: {
-            public_id: "avatar002",
-            url: "https://example.com/avatar2.jpg",
-          },
+          avatar: "https://example.com/avatar2.jpg",
           password: undefined,
           courses: [],
           createdAt: new Date("2024-02-15T11:00:00Z"),
@@ -66,7 +66,7 @@ export const mockCourses: CoursesType[] = [
         commentReplies: [],
       },
     ],
-    courseData: [],
+    courseData: mockCourseData,
     ratings: 5.0,
     purchased: 340,
   },
@@ -131,7 +131,7 @@ export const mockCourses: CoursesType[] = [
         ],
       },
     ],
-    courseData: [],
+    courseData: mockCourseData,
     ratings: 4.6,
     purchased: 278,
   },

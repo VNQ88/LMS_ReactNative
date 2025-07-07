@@ -10,22 +10,14 @@ type BannerDataTypes = {
   bannerImageUrl: any;
 };
 
-type Avatar = {
-  public_id: string;
-  url: string;
-};
+type Role = "Student" | "Teacher" | "Admin"; // Enum tương ứng nếu bạn có trong backend
 
 type User = {
-  _id: string;
-  name: string;
+  id: number;
+  fullName: string;
   email: string;
-  avatar?: Avatar;
-  password?: string;
-  courses: any;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type BannerDataTypes = {
-  bannerImageUrl: any;
+  avatar: string;
+  role: Role;
+  created_at?: string; // thường backend trả ISO string
+  updated_at?: string;
 };

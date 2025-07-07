@@ -60,3 +60,32 @@ type CoursesType = {
   ratings?: number;
   purchased: number;
 };
+
+type Course = {
+  id: number;
+  title: string;
+  description?: string;
+  image?: string;
+  price: number;
+  duration?: number;
+  created_at: string;
+  created_by: User;
+};
+
+type Chapter = {
+  id: number;
+  title: string;
+  index?: number;
+  course: Course;
+};
+
+type Lesson = {
+  id: number;
+  title: string;
+  description?: string;
+  image?: string;
+  video: string;
+  course: Course;
+  order_index?: number;
+  chapter?: Chapter;
+};

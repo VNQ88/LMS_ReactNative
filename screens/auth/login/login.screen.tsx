@@ -46,35 +46,47 @@ export default function LoginScreen() {
     const passwordSpecialCharacter = /(?=.*[!@#$&*])/;
     const passwordOneNumber = /(?=.*[0-9])/;
     const passwordSixValue = /(?=.{6,})/;
-
-    if (!passwordSpecialCharacter.test(password)) {
-      setError({
-        ...error,
-        password: "Write at least one special character",
-      });
-      setUserInfo({ ...userInfo, password: "" });
-    } else if (!passwordOneNumber.test(password)) {
-      setError({ ...error, password: "Write at least one number" });
-      setUserInfo({ ...userInfo, password: "" });
-    } else if (!passwordSixValue.test(password)) {
-      setError({ ...error, password: "Write at least 6 characters" }),
-        setUserInfo({ ...userInfo, password: "" });
-    } else {
-      setError({ ...error, password: "" }),
-        setUserInfo({ ...userInfo, password: text });
-    }
+    setError({ ...error, password: "" });
+    setUserInfo({ ...userInfo, password: text });
+    // if (!passwordSpecialCharacter.test(password)) {
+    //   setError({
+    //     ...error,
+    //     password: "Write at least one special character",
+    //   });
+    //   setUserInfo({ ...userInfo, password: "" });
+    // } else
+    // if (!passwordOneNumber.test(password)) {
+    //   setError({ ...error, password: "Write at least one number" });
+    //   setUserInfo({ ...userInfo, password: "" });
+    // } else if (!passwordSixValue.test(password)) {
+    //   setError({ ...error, password: "Write at least 6 characters" }),
+    //     setUserInfo({ ...userInfo, password: "" });
+    // } else {
+    //   setError({ ...error, password: "" }),
+    //     setUserInfo({ ...userInfo, password: text });
+    // }
   }
+  const params = new URLSearchParams();
+  params.append("email", userInfo.email);
+  params.append("password", userInfo.password);
 
   const handleSignIn = async () => {
     await axios
-      .post(`${SERVER_URI}/login`, {
-        email: userInfo.email,
-        password: userInfo.password,
+      .post(`${SERVER_URI}/auth/login`, params, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       })
       .then(async (res) => {
-        await AsyncStorage.setItem("access_token", res.data.accessToken);
-        await AsyncStorage.setItem("refresh_token", res.data.refreshToken);
-        router.push("/(tabs)/home");
+        console.log("RESPONSE DATA:", res.data);
+        const { access_token, refresh_token } = res.data;
+
+        if (!access_token || !refresh_token) {
+          throw new Error("Token not received from server.");
+        }
+        await AsyncStorage.setItem("access_token", access_token);
+        await AsyncStorage.setItem("refresh_token", refresh_token);
+        router.push("/(tabs)");
       })
       .catch((error) => {
         console.log(error);

@@ -5,10 +5,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function useUser() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User>();
+  // const [user, setUser] = useState<User>();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState("");
   const [refetch, setRefetch] = useState(false);
-
   useEffect(() => {
     const subscription = async () => {
       const accessToken = await AsyncStorage.getItem("access_token");
@@ -22,8 +22,9 @@ export default function useUser() {
           },
         })
         .then((res: any) => {
-          setUser(res.data.user);
+          // setUser(res.data.user);
           setLoading(false);
+          setIsLoggedIn(true);
         })
         .catch((error: any) => {
           setError(error?.message);
@@ -33,5 +34,5 @@ export default function useUser() {
     subscription();
   }, [refetch]);
 
-  return { loading, user, error, setRefetch, refetch };
+  return { loading, isLoggedIn, error, setRefetch, refetch };
 }
