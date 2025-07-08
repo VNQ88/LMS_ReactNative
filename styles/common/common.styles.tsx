@@ -49,7 +49,6 @@ export const commonStyles = StyleSheet.create({
     height: 55,
     marginHorizontal: 16,
     borderRadius: 8,
-    paddingLeft: 35,
     fontSize: 16,
     backgroundColor: "white",
     color: "#A1A1A1",
@@ -58,7 +57,7 @@ export const commonStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 16,
-    position: "absolute",
-    top: 60,
+    position: "relative",
+    top: -115,
   },
 });

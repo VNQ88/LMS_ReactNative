@@ -48,23 +48,6 @@ export default function LoginScreen() {
     const passwordSixValue = /(?=.{6,})/;
     setError({ ...error, password: "" });
     setUserInfo({ ...userInfo, password: text });
-    // if (!passwordSpecialCharacter.test(password)) {
-    //   setError({
-    //     ...error,
-    //     password: "Write at least one special character",
-    //   });
-    //   setUserInfo({ ...userInfo, password: "" });
-    // } else
-    // if (!passwordOneNumber.test(password)) {
-    //   setError({ ...error, password: "Write at least one number" });
-    //   setUserInfo({ ...userInfo, password: "" });
-    // } else if (!passwordSixValue.test(password)) {
-    //   setError({ ...error, password: "Write at least 6 characters" }),
-    //     setUserInfo({ ...userInfo, password: "" });
-    // } else {
-    //   setError({ ...error, password: "" }),
-    //     setUserInfo({ ...userInfo, password: text });
-    // }
   }
   const params = new URLSearchParams();
   params.append("email", userInfo.email);
@@ -106,16 +89,11 @@ export default function LoginScreen() {
           style={styles.signInImage}
           source={require("@/assets/sign-in/sign_in.png")}
         ></Image>
-        <Text
-          style={[
-            styles.welcomeText,
-            { fontFamily: "Railway_700Bold", fontWeight: "bold" },
-          ]}
-        >
+        <Text style={[styles.welcomeText, { fontFamily: "Raleway_700Bold" }]}>
           Welcome back
         </Text>
         <Text
-          style={[styles.learningText, { fontFamily: "Railway_400Regular" }]}
+          style={[styles.learningText, { fontFamily: "Raleway_400Regular" }]}
         >
           Login to your existing account of KMA LMS
         </Text>
@@ -141,7 +119,7 @@ export default function LoginScreen() {
             )}
             <View style={{ marginTop: 15 }}>
               <TextInput
-                style={commonStyles.input}
+                style={[styles.input, { paddingLeft: 40 }]}
                 keyboardType="default"
                 secureTextEntry={!isPasswordVisible}
                 defaultValue=""
@@ -172,9 +150,10 @@ export default function LoginScreen() {
               </View>
             )}
             <TouchableOpacity
-              onPress={() => {
-                router.push("/routes/forgot-password");
-              }}
+
+            // onPress={() => {
+            //   router.push("/routes/forgot-password");
+            // }}
             >
               <Text
                 style={[
@@ -292,6 +271,7 @@ const styles = StyleSheet.create({
     left: 23,
     top: 17.8,
     marginTop: -2,
+    marginLeft: 5,
   },
   forgotSection: {
     marginHorizontal: 16,

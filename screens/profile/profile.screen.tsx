@@ -28,7 +28,6 @@ import { router } from "expo-router";
 import { Toast } from "react-native-toast-notifications";
 
 export default function ProfileScreen() {
-  const { loading, setRefetch } = useUser();
   const [image, setImage] = useState<any>(null);
   const [loader, setLoader] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -62,6 +61,7 @@ export default function ProfileScreen() {
       });
 
       setCurrentUser(response.data);
+      setLoader(false);
     } catch (error) {
       console.error("Error fetching current user:", error);
       throw error; // Ném lỗi để xử lý ở nơi gọi hàm
@@ -76,7 +76,6 @@ export default function ProfileScreen() {
         },
       })
       .then(async (res) => {
-        setRefetch(true);
         await AsyncStorage.removeItem("access_token");
         await AsyncStorage.removeItem("refresh_token");
         Toast.show(res.data.message || "Logout successful", {
@@ -118,7 +117,7 @@ export default function ProfileScreen() {
 
   return (
     <>
-      {loader || loading ? (
+      {loader ? (
         <Loader />
       ) : (
         <LinearGradient

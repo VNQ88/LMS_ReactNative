@@ -6,6 +6,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Toast } from "react-native-toast-notifications";
 import { router } from "expo-router";
+import { set } from "lodash";
 
 interface QuizResponse {
   quiz: Quiz;
@@ -13,8 +14,8 @@ interface QuizResponse {
 }
 export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
   const [quizData, setQuizData] = useState<QuizResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState<boolean>(false);
+  const [isQuizCompleted, setIsQuizCompleted] = useState<boolean>(false);
   const toggleVisibility = () => {
     setVisible(!visible);
   };
@@ -23,33 +24,51 @@ export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
       try {
         const accessToken = await AsyncStorage.getItem("access_token");
         if (!accessToken) {
-          console.error("❌ No access token found");
-          alert("Please log in to access this feature.");
-          setLoading(false);
+          Toast.show("Please log in to access this feature.", {
+            type: "danger",
+            placement: "bottom",
+            duration: 4000,
+          });
           return;
         }
         const res = await axios.get(`${SERVER_URI}/quiz/${currentLesson.id}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        setQuizData(res.data.data); // hoặc `res.data` tuỳ theo backend trả về
-      } catch (error) {
-        // Xử lý lỗi khi không lấy được dữ liệu
-        if (axios.isAxiosError(error)) {
-          //   console.error("❌ Axios error:", error.message);
-          Toast.show("Cannot get quiz data. Please try again later.", {
-            placement: "bottom",
-            duration: 3000,
-            animationType: "slide-in",
-          });
+        setQuizData(res.data.data);
+        console.log("Quiz Data:", res.data.data);
+        // Gọi API kiểm tra quiz completion ngay sau khi có quizData
+
+        if (res.data.data?.quiz?.id) {
+          console.log(
+            "Checking quiz completion for ID:",
+            res.data.data.quiz.id
+          );
+          await checkQuizCompletion(res.data.data.quiz.id);
         }
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          Toast.show("Failed to load quiz data.", { type: "danger" });
+        }
       }
     };
 
     fetchLessons();
-  }, []); // ⬅️ chạy 1 lần duy nhất khi component mount
-  //   if (loading) return <Text>Loading...</Text>;
+  }, [currentLesson.id]);
+  const checkQuizCompletion = async (quizId: number) => {
+    try {
+      const accessToken = await AsyncStorage.getItem("access_token");
+      if (!accessToken) {
+        throw new Error("No access token found");
+      }
+      await axios.get(`${SERVER_URI}/quiz/answer/${quizId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setIsQuizCompleted(true);
+      console.log("✅ Quiz is completed", isQuizCompleted);
+    } catch (error) {
+      setIsQuizCompleted(false);
+    }
+  };
   console.log(quizData?.questions);
   if (!quizData) return <Text>No Quiz Available</Text>;
   return (
@@ -94,7 +113,7 @@ export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
                 justifyContent: "space-between",
               }}
             >
-              <View style={{ width: "80%" }}>
+              <View style={{ width: "75%" }}>
                 <Text
                   style={{
                     padding: 10,
@@ -113,48 +132,90 @@ export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
                 >
                   Description: {quizData?.quiz.description || ""}
                 </Text>
-              </View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (quizData.questions) {
-                      router.push({
-                        pathname: "/routes/quiz/do-quiz/",
-                        params: {
-                          questionsData: JSON.stringify(quizData.questions),
-                          quizId: quizData.quiz.id.toString(),
-                        },
-                      });
-                    } else {
-                      Toast.show("Quiz questions not loaded yet.", {
-                        placement: "bottom",
-                        duration: 3000,
-                        animationType: "slide-in",
-                      });
-                      console.log(quizData.questions);
-                    }
-                  }}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <Feather
-                    name="play"
-                    size={24}
-                    color="#2467EC"
-                    style={{ padding: 4 }}
-                  />
+                {isQuizCompleted && (
                   <Text
                     style={{
-                      paddingRight: 10,
+                      padding: 10,
+                      color: "#2467EC",
                       fontSize: 14,
                       fontFamily: "Raleway_400Regular",
                     }}
                   >
-                    Start
+                    Quiz Completed. You can view your result.
                   </Text>
-                </TouchableOpacity>
+                )}
+              </View>
+              <View>
+                {isQuizCompleted ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      router.push({
+                        pathname: "/routes/quiz/quiz-result",
+                        params: { quizId: quizData.quiz.id.toString() },
+                      });
+                    }}
+                    style={{
+                      alignItems: "center",
+                    }}
+                  >
+                    <Feather
+                      name="check-circle"
+                      size={24}
+                      color="#2467EC"
+                      style={{ padding: 4 }}
+                    />
+                    <Text
+                      style={{
+                        paddingRight: 10,
+                        fontSize: 14,
+                        fontFamily: "Raleway_400Regular",
+                      }}
+                    >
+                      View Result
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (quizData.questions) {
+                        router.push({
+                          pathname: "/routes/quiz/do-quiz",
+                          params: {
+                            questionsData: JSON.stringify(quizData.questions),
+                            quizId: quizData.quiz.id.toString(),
+                          },
+                        });
+                      } else {
+                        Toast.show("Quiz questions not loaded yet.", {
+                          placement: "bottom",
+                          duration: 3000,
+                          animationType: "slide-in",
+                        });
+                        console.log(quizData.questions);
+                      }
+                    }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Feather
+                      name="play"
+                      size={24}
+                      color="#2467EC"
+                      style={{ padding: 4 }}
+                    />
+                    <Text
+                      style={{
+                        paddingRight: 10,
+                        fontSize: 14,
+                        fontFamily: "Raleway_400Regular",
+                      }}
+                    >
+                      Start
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>

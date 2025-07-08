@@ -68,8 +68,8 @@ type Course = {
   image?: string;
   price: number;
   duration?: number;
-  created_at: string;
-  created_by: User;
+  created_at?: string;
+  created_by?: User;
 };
 
 type Chapter = {

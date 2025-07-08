@@ -37,7 +37,7 @@ export default function DoQuizScreen() {
   });
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null); // Sử dụng choice.id thay vì index
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [timeLeft, setTimeLeft] = useState(10);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
@@ -91,13 +91,13 @@ export default function DoQuizScreen() {
     return () => clearInterval(timer);
   }, [currentQuestionIndex, isQuizCompleted, questions.length]);
 
-  const handleAnswer = (index: number) => {
-    setSelectedAnswer(index);
+  const handleAnswer = (choiceId: number) => {
+    setSelectedAnswer(choiceId); // Cập nhật selectedAnswer với choice.id
     setAnswers((prev) => {
       const newAnswers = [...prev];
       newAnswers[currentQuestionIndex] = {
         questionId: questions[currentQuestionIndex].id,
-        selected_choice: index,
+        selected_choice: choiceId,
       };
       return newAnswers;
     });
@@ -177,16 +177,16 @@ export default function DoQuizScreen() {
             <Text style={styles.questionText}>
               {questions[currentQuestionIndex].text}
             </Text>
-            {questions[currentQuestionIndex]?.choices?.map((choice, index) => (
+            {questions[currentQuestionIndex]?.choices?.map((choice) => (
               <TouchableOpacity
-                key={index}
+                key={choice.id}
                 style={[
                   styles.choiceButton,
-                  selectedAnswer === index && styles.selectedChoice,
+                  selectedAnswer === choice.id && styles.selectedChoice,
                 ]}
-                onPress={() => handleAnswer(index)}
-                disabled={selectedAnswer !== null || isQuizCompleted}
-                accessibilityLabel={`Choice ${index + 1}: ${choice.text}`}
+                onPress={() => handleAnswer(choice.id)}
+                disabled={isQuizCompleted} // Chỉ vô hiệu khi quiz hoàn thành
+                accessibilityLabel={`Choice: ${choice.text}`}
                 accessibilityRole="button"
               >
                 <Text style={styles.choiceText}>{choice.text}</Text>
@@ -233,7 +233,7 @@ export default function DoQuizScreen() {
               onPress={() => {
                 setShowSuccessModal(false);
                 router.push({
-                  pathname: "/routes/quiz/result",
+                  pathname: "/routes/quiz/quiz-result",
                   params: { quizId: quiz_id.toString() },
                 });
               }}

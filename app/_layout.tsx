@@ -59,7 +59,9 @@ function RootLayoutNav() {
         <Stack.Screen name="routes/welcome-intro/index"></Stack.Screen>
         <Stack.Screen name="routes/login/index" />
         <Stack.Screen name="routes/sign-up/index"></Stack.Screen>
+
         <Stack.Screen name="routes/forgot-password/index"></Stack.Screen>
+        <Stack.Screen name="routes/quiz/quiz-result/index"></Stack.Screen>
         <Stack.Screen
           name="routes/quiz/do-quiz/index"
           options={{

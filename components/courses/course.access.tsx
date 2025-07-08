@@ -37,6 +37,8 @@ export default function CourseAccessScreen() {
   const [review, setReview] = useState("");
   const [reviewAvailable, setReviewAvailable] = useState(true);
 
+  const [isQuizCompleted, setIsQuizCompleted] = React.useState(false);
+
   useEffect(() => {
     const fetchInitialData = async () => {
       await fetchLessonList(); // Chỉ gọi một lần khi tải trang
