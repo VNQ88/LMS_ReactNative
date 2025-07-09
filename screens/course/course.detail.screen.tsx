@@ -173,7 +173,7 @@ export default function CourseDetailScreen() {
                 width: "100%",
               }}
             >
-              ${courseData?.price}
+              {courseData?.price}đ
             </Text>
             {/* <Text
               style={{
@@ -376,7 +376,10 @@ export default function CourseDetailScreen() {
               marginVertical: 20,
             }}
           >
-            <CourseLesson courseDetails={courseData} />
+            <CourseLesson
+              courseDetails={courseData}
+              isPurchased={checkPurchased}
+            />
           </View>
         )}
         {activeButton === "Review" && mockData?.reviews.length > 0 && (

@@ -24,7 +24,8 @@ import QuizList from "../quiz-list";
 
 export default function CourseAccessScreen() {
   const [isLoading, setIsLoading] = useState(true);
-  const { courseData } = useLocalSearchParams();
+  const { courseData, lesId } = useLocalSearchParams();
+  const lessonId = parseInt(lesId as string, 10);
   const data: Course = JSON.parse(courseData as string);
 
   const [courseContentData, setCourseContentData] = useState<Lesson[]>([]);
@@ -36,8 +37,6 @@ export default function CourseAccessScreen() {
   const [rating, setRating] = useState(1);
   const [review, setReview] = useState("");
   const [reviewAvailable, setReviewAvailable] = useState(true);
-
-  const [isQuizCompleted, setIsQuizCompleted] = React.useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {

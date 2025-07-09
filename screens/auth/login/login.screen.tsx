@@ -216,7 +216,7 @@ export default function LoginScreen() {
                     fontSize: 18,
                     fontFamily: "Raleway_600SemiBold",
                     color: "#2467EC",
-                    marginLeft: 5,
+                    width: "auto",
                   }}
                 >
                   Sign up
@@ -281,7 +281,6 @@ const styles = StyleSheet.create({
   },
   signupRedirect: {
     flexDirection: "row",
-    marginHorizontal: 16,
     justifyContent: "center",
     marginBottom: 20,
     marginTop: 20,

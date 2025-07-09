@@ -77,8 +77,17 @@ export default function CourseCard({ item }: { item: Course }) {
           }}
         >
           <View style={{ flexDirection: "row" }}>
-            <Text style={{ paddingTop: 10, fontSize: 18, fontWeight: "600" }}>
-              ${item?.price}
+            <Text
+              style={{
+                paddingTop: 10,
+                fontSize: 18,
+                fontWeight: "500",
+                color: "#2467EC",
+                fontStyle: "italic",
+                width: "100%",
+              }}
+            >
+              {item?.price}đ
             </Text>
             {/* <Text
               style={{

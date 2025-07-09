@@ -3,11 +3,14 @@ import React, { Fragment, useEffect, useState } from "react";
 import { Entypo, Feather } from "@expo/vector-icons";
 import { SERVER_URI } from "@/utils/uri";
 import axios from "axios";
+import { router } from "expo-router";
 
 export default function CourseLesson({
   courseDetails,
+  isPurchased,
 }: {
   courseDetails: Course;
+  isPurchased: boolean;
 }) {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(
     new Set<string>()
@@ -100,7 +103,18 @@ export default function CourseLesson({
                 {isSectionVisible && (
                   <>
                     {sectionVideos.map((item: Lesson) => (
-                      <View
+                      <TouchableOpacity
+                        disabled={!isPurchased}
+                        // onPress={() => {
+                        //   // Handle video click
+                        //   router.push({
+                        //     pathname: "/routes/course-access",
+                        //     params: {
+                        //       courseData: JSON.stringify(courseDetails),
+                        //       lesId: item.id.toString(),
+                        //     },
+                        //   });
+                        // }}
                         key={item.id}
                         style={{
                           borderWidth: 1,
@@ -145,7 +159,7 @@ export default function CourseLesson({
                             </View>
                           </View>
                         </View>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </>
                 )}

@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import axios from "axios";
 import {
@@ -38,39 +40,66 @@ interface ErrorState {
   fullName: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
 export default function SignUpScreen() {
   const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [buttonSpinner, setButtonSpinner] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo>({
     fullName: "",
     email: "",
     password: "",
   });
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<ErrorState>({
     fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const handlePasswordValidation = useCallback((text: string) => {
-    const passwordSpecialCharacter = /(?=.*[!@#$&*])/;
-    const passwordOneNumber = /(?=.*[0-9])/;
-    const passwordSixValue = /(?=.{6,})/;
+  const handlePasswordValidation = useCallback(
+    (text: string) => {
+      const passwordSpecialCharacter = /(?=.*[!@#$&*])/;
+      const passwordOneNumber = /(?=.*[0-9])/;
+      const passwordSixValue = /(?=.{6,})/;
 
-    if (!passwordOneNumber.test(text)) {
-      setErrors({ ...errors, password: "At least one number required" });
-    } else if (!passwordSixValue.test(text)) {
-      setErrors({ ...errors, password: "At least 6 characters required" });
-    } else {
-      setErrors({ ...errors, password: "" });
-    }
-    setUserInfo({ ...userInfo, password: text });
-  }, []);
+      if (!passwordOneNumber.test(text)) {
+        setErrors({ ...errors, password: "At least one number required" });
+      } else if (!passwordSixValue.test(text)) {
+        setErrors({ ...errors, password: "At least 6 characters required" });
+      } else {
+        setErrors({ ...errors, password: "" });
+      }
+      setUserInfo({ ...userInfo, password: text });
+      if (confirmPassword && text !== confirmPassword) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords do not match",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+      }
+    },
+    [errors, userInfo, confirmPassword]
+  );
+
+  const handleConfirmPasswordValidation = useCallback(
+    (text: string) => {
+      if (text !== userInfo.password) {
+        setErrors({ ...errors, confirmPassword: "Passwords do not match" });
+      } else {
+        setErrors({ ...errors, confirmPassword: "" });
+      }
+      setConfirmPassword(text);
+    },
+    [errors, userInfo.password]
+  );
 
   const SetUserInfo = useCallback((field: keyof UserInfo, value: string) => {
     setUserInfo((prev) => ({ ...prev, [field]: value }));
@@ -78,7 +107,12 @@ export default function SignUpScreen() {
 
   const validateInputs = useCallback(() => {
     let valid = true;
-    const newErrors = { fullName: "", email: "", password: "" };
+    const newErrors = {
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
 
     if (!userInfo.fullName) {
       newErrors.fullName = "Full name is required";
@@ -95,10 +129,17 @@ export default function SignUpScreen() {
       newErrors.password = "Password is required";
       valid = false;
     }
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Confirm password is required";
+      valid = false;
+    } else if (confirmPassword !== userInfo.password) {
+      newErrors.confirmPassword = "Passwords do not match";
+      valid = false;
+    }
 
     setErrors(newErrors);
     return valid;
-  }, [userInfo]);
+  }, [userInfo, confirmPassword]);
 
   const handleSignUp = useCallback(async () => {
     if (!validateInputs()) {
@@ -108,14 +149,19 @@ export default function SignUpScreen() {
 
     setButtonSpinner(true);
     try {
-      await axios.post(`${SERVER_URI}/auth/register`, userInfo);
+      await axios.post(`${SERVER_URI}/auth/register`, {
+        fullName: userInfo.fullName,
+        email: userInfo.email,
+        password: userInfo.password,
+      });
       Toast.show("Sign up successful! Let's get started", {
         type: "success",
-        placement: "top",
+        placement: "bottom",
         duration: 5000,
       });
       setUserInfo({ fullName: "", email: "", password: "" });
-      router.push("/routes/verifyAccount");
+      setConfirmPassword("");
+      // router.push("/routes/verifyAccount");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         const { status, data } = error.response;
@@ -138,125 +184,170 @@ export default function SignUpScreen() {
     } finally {
       setButtonSpinner(false);
     }
-  }, [userInfo, validateInputs]);
+  }, [userInfo, confirmPassword, validateInputs]);
 
   return (
     <LinearGradient
       colors={["#E5ECF9", "#F6F7F9"]}
       style={{ flex: 1, paddingTop: responsiveHeight(2) }}
     >
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <Image
-          style={styles.signInImage}
-          source={require("@/assets/sign-in/sign_in.png")}
-        />
-        <Text style={[styles.welcomeText, { fontFamily: "Raleway_700Bold" }]}>
-          Let's get started
-        </Text>
-        <Text
-          style={[styles.learningText, { fontFamily: "Raleway_400Regular" }]}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1 }}
         >
-          Create your new account to get all features
-        </Text>
-        <View style={styles.inputContainer}>
-          {errors.fullName && (
-            <View style={styles.errorContainer}>
-              <Entypo name="cross" size={18} color="red" />
-              <Text style={styles.errorText}>{errors.fullName}</Text>
+          <Image
+            style={styles.signInImage}
+            source={require("@/assets/sign-in/sign_in.png")}
+          />
+          <Text style={[styles.welcomeText, { fontFamily: "Raleway_700Bold" }]}>
+            Let's get started
+          </Text>
+          <Text
+            style={[styles.learningText, { fontFamily: "Raleway_400Regular" }]}
+          >
+            Create your new account to get all features
+          </Text>
+          <View style={styles.inputContainer}>
+            {errors.fullName && (
+              <View style={styles.errorContainer}>
+                <Entypo name="cross" size={18} color="red" />
+                <Text style={styles.errorText}>{errors.fullName}</Text>
+              </View>
+            )}
+            <View style={styles.inputWrapper}>
+              <AntDesign
+                name="user"
+                size={20}
+                color="#A1A1A1"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, commonStyles.input]}
+                keyboardType="default"
+                value={userInfo.fullName}
+                placeholder="nguyen van a"
+                onChangeText={(text) => SetUserInfo("fullName", text)}
+              />
             </View>
-          )}
-          <View style={styles.inputWrapper}>
-            <AntDesign
-              name="user"
-              size={20}
-              color="#A1A1A1"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, commonStyles.input]}
-              keyboardType="default"
-              value={userInfo.fullName}
-              placeholder="nguyen van a"
-              onChangeText={(text) => SetUserInfo("fullName", text)}
-            />
-          </View>
 
-          {errors.email && (
-            <View style={styles.errorContainer}>
-              <Entypo name="cross" size={18} color="red" />
-              <Text style={styles.errorText}>{errors.email}</Text>
+            {errors.email && (
+              <View style={styles.errorContainer}>
+                <Entypo name="cross" size={18} color="red" />
+                <Text style={styles.errorText}>{errors.email}</Text>
+              </View>
+            )}
+            <View style={styles.inputWrapper}>
+              <Fontisto
+                name="email"
+                size={20}
+                color="#A1A1A1"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, commonStyles.input]}
+                keyboardType="email-address"
+                value={userInfo.email}
+                placeholder="example@gmail.com"
+                onChangeText={(text) => SetUserInfo("email", text)}
+              />
             </View>
-          )}
-          <View style={styles.inputWrapper}>
-            <Fontisto
-              name="email"
-              size={20}
-              color="#A1A1A1"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, commonStyles.input]}
-              keyboardType="email-address"
-              value={userInfo.email}
-              placeholder="example@gmail.com"
-              onChangeText={(text) => SetUserInfo("email", text)}
-            />
-          </View>
 
-          {errors.password && (
-            <View style={styles.errorContainer}>
-              <Entypo name="cross" size={18} color="red" />
-              <Text style={styles.errorText}>{errors.password}</Text>
+            {errors.password && (
+              <View style={styles.errorContainer}>
+                <Entypo name="cross" size={18} color="red" />
+                <Text style={styles.errorText}>{errors.password}</Text>
+              </View>
+            )}
+            <View style={styles.inputWrapper}>
+              <SimpleLineIcons
+                name="lock"
+                size={20}
+                color="#A1A1A1"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, commonStyles.input]}
+                secureTextEntry={!isPasswordVisible}
+                placeholder="************"
+                onChangeText={handlePasswordValidation}
+              />
+              <TouchableOpacity
+                style={styles.visibleIcon}
+                onPress={() => setPasswordVisible(!isPasswordVisible)}
+              >
+                {isPasswordVisible ? (
+                  <Ionicons name="eye-off" size={24} color="#A1A1A1" />
+                ) : (
+                  <Ionicons name="eye" size={24} color="#A1A1A1" />
+                )}
+              </TouchableOpacity>
             </View>
-          )}
-          <View style={styles.inputWrapper}>
-            <SimpleLineIcons
-              name="lock"
-              size={20}
-              color="#A1A1A1"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, commonStyles.input]}
-              secureTextEntry={!isPasswordVisible}
-              placeholder="************"
-              onChangeText={handlePasswordValidation}
-            />
+
+            {errors.confirmPassword && (
+              <View style={styles.errorContainer}>
+                <Entypo name="cross" size={18} color="red" />
+                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+              </View>
+            )}
+            <View style={styles.inputWrapper}>
+              <SimpleLineIcons
+                name="lock"
+                size={20}
+                color="#A1A1A1"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[styles.input, commonStyles.input]}
+                secureTextEntry={!isConfirmPasswordVisible}
+                placeholder="Confirm Password"
+                onChangeText={handleConfirmPasswordValidation}
+              />
+              <TouchableOpacity
+                style={styles.visibleIcon}
+                onPress={() =>
+                  setConfirmPasswordVisible(!isConfirmPasswordVisible)
+                }
+              >
+                {isConfirmPasswordVisible ? (
+                  <Ionicons name="eye-off" size={24} color="#A1A1A1" />
+                ) : (
+                  <Ionicons name="eye" size={24} color="#A1A1A1" />
+                )}
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
-              style={styles.visibleIcon}
-              onPress={() => setPasswordVisible(!isPasswordVisible)}
+              style={styles.signUpButton}
+              onPress={handleSignUp}
             >
-              {isPasswordVisible ? (
-                <Ionicons name="eye-off" size={24} color="#A1A1A1" />
+              {buttonSpinner ? (
+                <ActivityIndicator size="small" color="white" />
               ) : (
-                <Ionicons name="eye" size={24} color="#A1A1A1" />
+                <Text style={styles.signUpText}>Sign up</Text>
               )}
             </TouchableOpacity>
+            <View style={styles.socialButtons}>
+              <TouchableOpacity>
+                <FontAwesome name="google" size={30} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <FontAwesome name="github" size={30} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.signupRedirect}>
+              <Text style={styles.redirectText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => router.push("/routes/login")}>
+                <Text style={styles.signInText}>Sign in</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-            {buttonSpinner ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
-              <Text style={styles.signUpText}>Sign up</Text>
-            )}
-          </TouchableOpacity>
-          <View style={styles.socialButtons}>
-            <TouchableOpacity>
-              <FontAwesome name="google" size={30} />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <FontAwesome name="github" size={30} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.signupRedirect}>
-            <Text style={styles.redirectText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => router.push("/routes/login")}>
-              <Text style={styles.signInText}>Sign in</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 }
@@ -336,11 +427,11 @@ const styles = StyleSheet.create({
   redirectText: {
     fontSize: responsiveHeight(2.2),
     fontFamily: "Raleway_600SemiBold",
+    marginRight: responsiveWidth(1),
   },
   signInText: {
     fontSize: responsiveHeight(2.2),
     fontFamily: "Raleway_600SemiBold",
     color: "#2467EC",
-    marginLeft: responsiveWidth(1),
   },
 });

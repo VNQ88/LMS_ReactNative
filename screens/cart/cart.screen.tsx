@@ -189,7 +189,6 @@ export default function CartScreen() {
                       marginRight: 10,
                     }}
                   >
-                    <FontAwesome name="dollar" size={14} color="#6B7280" />
                     <Text
                       style={{
                         fontSize: 14,
@@ -197,7 +196,7 @@ export default function CartScreen() {
                         color: "#6B7280",
                       }}
                     >
-                      {item.price}
+                      {item.price}đ
                     </Text>
                   </View>
                 </View>
@@ -267,7 +266,7 @@ export default function CartScreen() {
                 fontFamily: "Nunito_700Bold",
               }}
             >
-              Total Price: ${calculateTotalPrice()}
+              Total Price: {calculateTotalPrice()}đ
             </Text>
           ))}
         {cartItems?.length === 0 ||

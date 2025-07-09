@@ -31,11 +31,16 @@ export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
           });
           return;
         }
-        const res = await axios.get(`${SERVER_URI}/quiz/${currentLesson.id}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const quizIdResponse = await axios.get(
+          `${SERVER_URI}/quiz/by-lesson/${currentLesson.id}`
+        );
+        const res = await axios.get(
+          `${SERVER_URI}/quiz/${quizIdResponse.data.data.quizId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
         setQuizData(res.data.data);
-        console.log("Quiz Data:", res.data.data);
         // Gọi API kiểm tra quiz completion ngay sau khi có quizData
 
         if (res.data.data?.quiz?.id) {
@@ -47,7 +52,6 @@ export default function QuizList({ currentLesson }: { currentLesson: Lesson }) {
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          Toast.show("Failed to load quiz data.", { type: "danger" });
         }
       }
     };
